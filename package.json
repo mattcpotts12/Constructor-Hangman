@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/mattcpotts12/Constructor-Hangman#readme",
   "dependencies": {
-    "inquirer": "^5.0.1"
+    "center-align": "^1.0.1",
+    "chalk": "^2.3.0",
+    "inquirer": "^5.0.1",
+    "right-align": "^0.1.3"
   }
 }
