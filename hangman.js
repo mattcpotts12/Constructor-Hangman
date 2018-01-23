@@ -1,5 +1,5 @@
 
-// dependency for inquirer npm package
+// dependency for npm packages
 var inquirer = require("inquirer");
 var rightAlign = require('right-align');
 var center = require('center-align');
@@ -8,8 +8,8 @@ const chalk = require('chalk');
 const log = console.log;
 
 
-// var hangman_words = ["simple", "complex"];
-var hangman_words = ["mississippi", "dallas", "canada", "mexico"];
+// var hangman_words = ["mississippi", "dallas", "canada", "mexico"];
+var hangman_words = ["shit on a stick", "fucking ass whip", "kill me know", "son of a bitch"];
 var gameWord = "";
 var wordDisplay = [];
 var guessedLettersArr = [];
@@ -17,43 +17,52 @@ var guessedLettersArr = [];
 // var losses = 0;
 var gameCount = 0;
 var gamePlay = true;
-
-log(chalk.blue(center("CENTER", 100)) + rightAlign("RIGHT"));
-
-
+var miss = 10;
 
 
 function Word(word) {
     this.word = word[Math.floor(Math.random() * word.length)];
     this.wordDisplay = function() {
-        wordDisplay = [];
-        for (var i = 0; i < this.word.length; i ++) {
-            wordDisplay.push("_");
+        for (var i = 0; i < this.word.length; i++) {
+            if (this.word[i] === " ") {
+                wordDisplay[i] = " "
+            }else {
+                wordDisplay[i] = "_";
+            }
         }
-        log(wordDisplay.join(" "));
-
-        return wordDisplay.join(" ");
-
+        log("WORD BLANK SPLIT: " + wordDisplay.join(" "));
+        return wordDisplay.join("");
     };
 } // FUNCTION Word
-
-
 
 
 function Letter(let) {
     this.letter = let;
 } // FUNCTION Letter
 
-Letter.prototype.guessedLetters = function() {
+
+Letter.prototype.letterGuessed = function() {
     if (guessedLettersArr.includes(this.letter) === true) {
         log("----Letter Already Guessed----Try Again----");      
         return false;
     }else {
+        if (gameWord.includes(this.letter) === false) {
+            miss--;
+            log(chalk.red("INCORRECT"));
+            log(chalk.blue(miss) + " Incorrect Guesses Remaining");  
+        }else {
+            log(chalk.green("CORRECT!"));
+        }
+
         guessedLettersArr.push(this.letter);
         log("Guessed Letters >>>> " + guessedLettersArr.join(" ") + " <<<<");
+
+
+
+
         return true;
     }
-}; // PROTOTYPE guessedLetters
+};
 
 Letter.prototype.letterMatch = function() {
     for (var i = 0; i < gameWord.length; i++) {
@@ -62,20 +71,12 @@ Letter.prototype.letterMatch = function() {
         }
     }
     log("wordDisplay: " + wordDisplay.join(" "));
-    return wordDisplay;
-} //PROTOTYPE letterMatch
+    return wordDisplay.join(" ");
+};
 
-Letter.prototype.gameCheck = function(roundNumber) {
-    if (wordDisplay.includes("_") === false) {
-        return false;
-    }else {
-        return true;
-    }
-} // PROTOTYPE gameCheck
 
 
 function setupGame() {
-
     inquirer.prompt([
         {
             type: "confirm",
@@ -89,11 +90,37 @@ function setupGame() {
     })
 }
 
+function endGame() {
+    inquirer.prompt([
+        {
+            type: "confirm",
+            name: "game",
+            message: "Would you like to play again?"
+        }
+    ]).then(function(prmpt) {
+        log(prmpt.game);
+        if (prmpt.game === true) {
+            startGame();
+        }else {
+            log("You disapoint me");
+        }
+    })
+}
+
+function roundCheck() {
+    if (wordDisplay.includes("_") === false) {
+        return false; 
+    }else {
+        return true;
+    }
+}
 
 
-//======================================================++++++++++++========
-function startGame() {
-    // creates a new word for the game
+
+
+function startGame(){
+    guessedLettersArr = [];
+    wordDisplay = [];
     var newWord = new Word(hangman_words);
     gameWord = newWord.word;
     log("gameWord: " + gameWord);
@@ -101,11 +128,16 @@ function startGame() {
     var wordDisplay = newWord.wordDisplay();
 
     function playGame(roundNumber) {
-    
-
-
         roundNumber++;
-        log("Round: " + roundNumber);
+        log("Round #:" + roundNumber);
+
+        if (miss === 0) {
+            log("GAME OVER");
+            endGame();
+            return;
+        }
+        
+
         inquirer.prompt([       
             {
                 name: "guess",
@@ -118,39 +150,42 @@ function startGame() {
                     return false;
                 }
             }
-        ]).then(function(pmpt) {
-            var newLetter = new Letter(pmpt.guess);
-            var guess = pmpt.guess
+        ]).then(function(prmpt) {
+            var guess = prmpt.guess;            
+            var newLetter = new Letter(guess);
+            log("GUESS " + guess);
 
-            newLetter.guessedLetters();
+            newLetter.letterGuessed();
             newLetter.letterMatch();
-            
 
 
-            if (newLetter.gameCheck() === true) {
+
+            if (roundCheck() === true) {
                 playGame(roundNumber);
             }else {
-                inquirer.prompt([
-                    {
-                        type: "confirm",
-                        name: "game",
-                        message: "Would you like to play again?"
-                    }
-                ]).then(function(prmpt) {
-                    log(prmpt.game);
-                    if (prmpt.game === true) {
-                        startGame();
-                    }else {
-                        log("You disapoint me");
-                        return false;
-                    }
-                })
+                endGame();
+                // inquirer.prompt([
+                //     {
+                //         type: "confirm",
+                //         name: "game",
+                //         message: "Would you like to play again?"
+                //     }
+                // ]).then(function(prmpt) {
+                //     log(prmpt.game);
+                //     if (prmpt.game === true) {
+                //         startGame();
+                //     }else {
+                //         log("You disapoint me");
+                //     }
+                // })
             }
-        }) // THEN
-    } // FUNCTION playGame
+
+        })
+    }
     playGame(0);
-} //FUNCTION startGame
+}
+
+
 
 
 setupGame();
-// startGame();
