@@ -9,7 +9,7 @@ const log = console.log;
 
 
 // var hangman_words = ["mississippi", "dallas", "canada", "mexico"];
-var hangman_words = ["shit on a stick", "fucking ass whip", "kill me know", "son of a bitch"];
+var hangman_words = ["guardians of the galaxy", "wonder woman", "despicable me", "fast and furious", "pirates of the caribbean", "justice league", "planet of the apes", "beauty and the beast", "transformers", "blade runner", "harry potter", "lord of the rings"];
 var gameWord = "";
 var wordDisplay = [];
 var guessedLettersArr = [];
@@ -20,20 +20,23 @@ var gamePlay = true;
 var miss = 10;
 
 
+log(chalk.bgBlue("\n" + chalk.underline("Welcome to the Constructor Hangman Game\n")));
+
 function Word(word) {
     this.word = word[Math.floor(Math.random() * word.length)];
-    this.wordDisplay = function() {
-        for (var i = 0; i < this.word.length; i++) {
-            if (this.word[i] === " ") {
-                wordDisplay[i] = " "
-            }else {
-                wordDisplay[i] = "_";
-            }
-        }
-        log("WORD BLANK SPLIT: " + wordDisplay.join(" "));
-        return wordDisplay.join("");
-    };
 } // FUNCTION Word
+
+Word.prototype.wordDisplay = function() {
+    for (var i = 0; i < this.word.length; i++) {
+        if (this.word[i] === " ") {
+            wordDisplay[i] = " "
+        }else {
+            wordDisplay[i] = "_";
+        }
+    }
+    log(wordDisplay.join(" "));
+    // return wordDisplay.join("");  
+}
 
 
 function Letter(let) {
@@ -48,18 +51,12 @@ Letter.prototype.letterGuessed = function() {
     }else {
         if (gameWord.includes(this.letter) === false) {
             miss--;
-            log(chalk.red("INCORRECT"));
-            log(chalk.blue(miss) + " Incorrect Guesses Remaining");  
+            guessedLettersArr.push(this.letter);
+            log(chalk.red("INCORRECT           ") + chalk.blue(miss) + " Incorrect Guesses Remaining" + "           Guessed Letters >>>> " + guessedLettersArr.join(" ") + " <<<<");
         }else {
-            log(chalk.green("CORRECT!"));
+            guessedLettersArr.push(this.letter);
+            log(chalk.green("CORRECT!            ") + chalk.blue(miss) + " Incorrect Guesses Remaining" + "           Guessed Letters >>>> " + guessedLettersArr.join(" ") + " <<<<");
         }
-
-        guessedLettersArr.push(this.letter);
-        log("Guessed Letters >>>> " + guessedLettersArr.join(" ") + " <<<<");
-
-
-
-
         return true;
     }
 };
@@ -70,8 +67,9 @@ Letter.prototype.letterMatch = function() {
             wordDisplay[i] = this.letter;
         }
     }
-    log("wordDisplay: " + wordDisplay.join(" "));
+    log("wordDisplay TEST: " + wordDisplay.join(" "));
     return wordDisplay.join(" ");
+    // return true;
 };
 
 
@@ -79,13 +77,27 @@ Letter.prototype.letterMatch = function() {
 function setupGame() {
     inquirer.prompt([
         {
-            type: "confirm",
-            name: "confirm",
-            message: "Welcome to the Hangman Game.  \nPress " + chalk.green("Enter") + " to play"
+            type: "list",
+            name: "action",
+            message: "What do you want to do?",
+            choices: [
+                "Play Game",
+                "Instructions",
+                "Exit"
+            ]
         }
     ]).then(function(prmpt) {
-        if (prmpt.confirm === true) {
+        if (prmpt.action === "Play Game"){
+            log("Try to complete the phrase below\n");
             startGame();
+        }
+        if (prmpt.action === "Instructions") {
+            log(chalk.underline("\nInstructions"));
+            log("You have 10 incorrect guess to complete the given phrase\n");
+            setupGame();
+        }
+        if (prmpt.Exit === "Exit") {
+            log("Goodbye");
         }
     })
 }
@@ -98,11 +110,11 @@ function endGame() {
             message: "Would you like to play again?"
         }
     ]).then(function(prmpt) {
-        log(prmpt.game);
         if (prmpt.game === true) {
+            log('\n')
             startGame();
         }else {
-            log("You disapoint me");
+            log("Goodbye");
         }
     })
 }
@@ -110,8 +122,6 @@ function endGame() {
 function roundCheck() {
     if (wordDisplay.includes("_") === false) {
         return false; 
-    }else {
-        return true;
     }
 }
 
@@ -121,15 +131,23 @@ function roundCheck() {
 function startGame(){
     guessedLettersArr = [];
     wordDisplay = [];
+
     var newWord = new Word(hangman_words);
     gameWord = newWord.word;
-    log("gameWord: " + gameWord);
-
+    // log("gameWord: " + gameWord);
+    newWord.wordDisplay();
     var wordDisplay = newWord.wordDisplay();
+
+    log("guessedLettersArr TEsT: " + guessedLettersArr);
+    log("wordDisplay TESt 1: " + wordDisplay);
+    log("gameWord TeST: " + gameWord);
+
+
+
 
     function playGame(roundNumber) {
         roundNumber++;
-        log("Round #:" + roundNumber);
+        // log("Round #:" + roundNumber);
 
         if (miss === 0) {
             log("GAME OVER");
@@ -153,31 +171,20 @@ function startGame(){
         ]).then(function(prmpt) {
             var guess = prmpt.guess;            
             var newLetter = new Letter(guess);
-            log("GUESS " + guess);
+            // log("GUESS " + guess);
+
+            log("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
 
             newLetter.letterGuessed();
             newLetter.letterMatch();
+            
 
+            log("\n");
 
-
-            if (roundCheck() === true) {
-                playGame(roundNumber);
-            }else {
+            if (roundCheck() === false) {
                 endGame();
-                // inquirer.prompt([
-                //     {
-                //         type: "confirm",
-                //         name: "game",
-                //         message: "Would you like to play again?"
-                //     }
-                // ]).then(function(prmpt) {
-                //     log(prmpt.game);
-                //     if (prmpt.game === true) {
-                //         startGame();
-                //     }else {
-                //         log("You disapoint me");
-                //     }
-                // })
+            }else {
+                playGame(roundNumber);
             }
 
         })
