@@ -135,12 +135,8 @@ function startGame(){
     var newWord = new Word(hangman_words);
     gameWord = newWord.word;
     // log("gameWord: " + gameWord);
-    newWord.wordDisplay();
+    // newWord.wordDisplay();
     var wordDisplay = newWord.wordDisplay();
-
-    log("guessedLettersArr TEsT: " + guessedLettersArr);
-    log("wordDisplay TESt 1: " + wordDisplay);
-    log("gameWord TeST: " + gameWord);
 
 
 
